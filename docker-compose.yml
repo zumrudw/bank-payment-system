@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    env_file:
+      - .env.docker
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: bank_payment_db_login
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env.docker
+    command: >
+      sh -c "sleep 5 && fastapi run app/main.py --port 8000"
+
+volumes:
+  postgres_data:
